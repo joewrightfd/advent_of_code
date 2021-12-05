@@ -4,30 +4,22 @@ from collections import Counter
 
 
 def vertical_cords(y1, y2, x):
-    cords = []
-    for offset in range(max(y1, y2) - min(y1, y2) + 1):
-        y = min(y1, y2) + offset
-        cords.append(f"{x},{y}")
-    return cords
+    min_y = min(y1, y2)
+    return [f"{x},{min_y + offset}" for offset in range(max(y1, y2) - min(y1, y2) + 1)]
 
 
 def horizontal_cords(x1, x2, y):
-    cords = []
-    for offset in range(max(x1, x2) - min(x1, x2) + 1):
-        x = min(x1, x2) + offset
-        cords.append(f"{x},{y}")
-    return cords
+    min_x = min(x1, x2)
+    return [f"{min_x + offset},{y}" for offset in range(max(x1, x2) - min(x1, x2) + 1)]
 
 
 def diagonal_cords(x1, y1, x2, y2):
-    cords = []
     x_mod = -1 if x1 > x2 else 1
     y_mod = -1 if y1 > y2 else 1
-    for offset in range(abs(x1 - x2) + 1):
-        x = x1 + (offset * x_mod)
-        y = y1 + (offset * y_mod)
-        cords.append(f"{x},{y}")
-    return cords
+    return [
+        f"{x1 + (offset * x_mod)},{y1 + (offset * y_mod)}"
+        for offset in range(abs(x1 - x2) + 1)
+    ]
 
 
 def duplicate_items(lst):
