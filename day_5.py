@@ -3,7 +3,7 @@ from aoc import advent_of_code
 from collections import Counter
 
 
-def horizontal_cords(y1, y2, x):
+def vertical_cords(y1, y2, x):
     cords = []
     for offset in range(max(y1, y2) - min(y1, y2) + 1):
         y = min(y1, y2) + offset
@@ -11,7 +11,7 @@ def horizontal_cords(y1, y2, x):
     return cords
 
 
-def vertical_cords(x1, x2, y):
+def horizontal_cords(x1, x2, y):
     cords = []
     for offset in range(max(x1, x2) - min(x1, x2) + 1):
         x = min(x1, x2) + offset
@@ -42,10 +42,10 @@ def part_one(input):
         x2, y2 = end
 
         if x1 == x2:
-            cords += horizontal_cords(y1, y2, x1)
+            cords += vertical_cords(y1, y2, x1)
 
         if y1 == y2:
-            cords += vertical_cords(x1, x2, y1)
+            cords += horizontal_cords(x1, x2, y1)
 
     return len(duplicate_items(cords))
 
@@ -57,10 +57,10 @@ def part_two(input):
         x2, y2 = end
 
         if x1 == x2:
-            cords += horizontal_cords(y1, y2, x1)
+            cords += vertical_cords(y1, y2, x1)
 
         if y1 == y2:
-            cords += vertical_cords(x1, x2, y1)
+            cords += horizontal_cords(x1, x2, y1)
 
         if abs(x1 - x2) == abs(y1 - y2):
             cords += diagonal_cords(x1, y1, x2, y2)
