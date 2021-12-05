@@ -1,0 +1,1 @@
+chokidar "**/*.py" -c "clear && python3 day_$1.py"

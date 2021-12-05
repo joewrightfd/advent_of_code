@@ -7,8 +7,8 @@ def transpose(list):
     return [[list[j][i] for j in range(len(list))] for i in range(len(list[0]))]
 
 
-def flatten(t):
-    return [item for sublist in t for item in sublist]
+def flatten(list):
+    return [item for sublist in list for item in sublist]
 
 
 class Board:
