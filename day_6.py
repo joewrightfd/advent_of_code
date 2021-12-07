@@ -3,9 +3,7 @@ from aoc import advent_of_code
 
 
 def day_cycle(fish):
-    if fish == 0:
-        return 6
-    return fish - 1
+    return 6 if fish == 0 else fish - 1
 
 
 def part_one(input):
