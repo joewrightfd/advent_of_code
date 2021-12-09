@@ -21,10 +21,10 @@ def part_two(input):
     count = 0
 
     for signal_patterns, output_values in input:
-        symbols = defaultdict(list)
+        symbols_by_length = defaultdict(list)
         for pattern in signal_patterns:
-            symbols[len(pattern)].append(set(pattern))
-        t = LettersAndSymbols(symbols)
+            symbols_by_length[len(pattern)].append(set(pattern))
+        t = LettersAndPositions(symbols_by_length)
 
         # Perform sodoku given what we know
         t.is_definitely("top", t.known_letters[7] - t.known_letters[1])
@@ -95,15 +95,18 @@ def part_two(input):
     return count
 
 
-class LettersAndSymbols:
-    def __init__(self, symbols):
+class LettersAndPositions:
+    def __init__(self, symbols_by_length):
         self.known_letters = {
-            1: symbols[2][0],
-            4: symbols[4][0],
-            7: symbols[3][0],
-            8: symbols[7][0],
+            1: symbols_by_length[2][0],
+            4: symbols_by_length[4][0],
+            7: symbols_by_length[3][0],
+            8: symbols_by_length[7][0],
         }
-        self.unknown_letters = {"0,6,9": symbols[6], "2,3,5": symbols[5]}
+        self.unknown_letters = {
+            "0,6,9": symbols_by_length[6],
+            "2,3,5": symbols_by_length[5],
+        }
 
         self.at = {}
 
