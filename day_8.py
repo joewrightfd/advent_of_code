@@ -4,10 +4,9 @@ from collections import defaultdict, Counter
 
 
 def part_one(input):
-    # 0=6, 1=2, 2=5, 3=5, 4=4, 5=5, 6=6, 7=3, 8=7, 9=6
     count = 0
 
-    for signal_patterns, output_values in input:
+    for _, output_values in input:
         lengths = map(len, output_values)
         count += len(list(filter(lambda x: x in [2, 3, 4, 7], lengths)))
 
@@ -18,8 +17,6 @@ def flatten(list):
     return [item for sublist in list for item in sublist]
 
 
-# letters a-g
-# top, mid, bottom, left-upper, left-lower, right-upper, right-lower
 def part_two(input):
     count = 0
 
@@ -28,137 +25,112 @@ def part_two(input):
         for pattern in signal_patterns:
             symbols[len(pattern)].append(set(pattern))
 
-        one_bits = symbols[2][0]
-        four_bits = symbols[4][0]
-        seven_bits = symbols[3][0]
-        eight_bits = symbols[7][0]
+        t = LettersAndSymbols(symbols)
 
-        # first pass
-        top_letter = list(seven_bits - one_bits)[0]
-        left_upper_letter = set(four_bits - one_bits)
-        right_upper_letter = one_bits
-        mid_letter = set(four_bits - one_bits)
-        left_lower_letter = eight_bits - set(top_letter) - one_bits
-        right_lower_letter = one_bits
-        bottom_letter = eight_bits - set(top_letter) - one_bits
+        t.is_definitely("top", t.known_letters[7] - t.known_letters[1])
 
-        # second pass
-        # zero, six, nine -> one of the left_upper two choices must appear 3 times to be correct
-        left_upper_letter = Counter(
-            filter(lambda x: x in left_upper_letter, flatten(symbols[6]))
-        ).most_common(1)[0][0]
-
-        # zero, six, nine -> one of the right_lower two choices must appear 3 times to be correct
-        right_lower_letter = Counter(
-            filter(lambda x: x in right_lower_letter, flatten(symbols[6]))
-        ).most_common(1)[0][0]
-
-        right_upper_letter = list(right_upper_letter - set(right_lower_letter))[0]
-        mid_letter = list(mid_letter - set(left_upper_letter))[0]
-        left_lower_letter = set(
-            left_lower_letter - {left_upper_letter, mid_letter, right_lower_letter}
-        )
-        bottom_letter = set(
-            bottom_letter - {left_upper_letter, mid_letter, right_lower_letter}
+        t.is_the_most_common_within(
+            "left_upper",
+            t.known_letters[4] - t.known_letters[1],
+            t.unknown_letters["0,6,9"],
         )
 
-        # third pass
-        # zero, six, nine -> one of the right_lower two choices must appear 3 times to be correct
-        bottom_letter = Counter(
-            filter(lambda x: x in bottom_letter, flatten(symbols[6]))
-        ).most_common(1)[0][0]
+        t.is_definitely(
+            "mid",
+            t.known_letters[4] - t.known_letters[1] - set(t.at["left_upper"]),
+        )
 
-        left_lower_letter = list(left_lower_letter - set(bottom_letter))[0]
+        t.is_the_most_common_within(
+            "right_lower", t.known_letters[1], t.unknown_letters["0,6,9"]
+        )
 
-        bits_for_0 = {
-            top_letter,
-            left_upper_letter,
-            right_upper_letter,
-            left_lower_letter,
-            right_lower_letter,
-            bottom_letter,
-        }
-        bits_for_1 = {right_upper_letter, right_lower_letter}
-        bits_for_2 = {
-            top_letter,
-            right_upper_letter,
-            mid_letter,
-            left_lower_letter,
-            bottom_letter,
-        }
-        bits_for_3 = {
-            top_letter,
-            right_upper_letter,
-            mid_letter,
-            right_lower_letter,
-            bottom_letter,
-        }
-        bits_for_4 = {
-            left_upper_letter,
-            mid_letter,
-            right_upper_letter,
-            right_lower_letter,
-        }
-        bits_for_5 = {
-            top_letter,
-            left_upper_letter,
-            mid_letter,
-            right_lower_letter,
-            bottom_letter,
-        }
-        bits_for_6 = {
-            top_letter,
-            left_upper_letter,
-            mid_letter,
-            left_lower_letter,
-            right_lower_letter,
-            bottom_letter,
-        }
-        bits_for_7 = {top_letter, right_upper_letter, right_lower_letter}
-        bits_for_8 = {
-            top_letter,
-            left_upper_letter,
-            right_upper_letter,
-            mid_letter,
-            left_lower_letter,
-            right_lower_letter,
-            bottom_letter,
-        }
-        bits_for_9 = {
-            top_letter,
-            left_upper_letter,
-            right_upper_letter,
-            mid_letter,
-            right_lower_letter,
-            bottom_letter,
-        }
+        t.is_definitely(
+            "right_upper",
+            t.known_letters[1] - set(t.at["right_lower"]),
+        )
 
-        number = ""
+        t.is_the_most_common_within(
+            "bottom",
+            t.known_letters[8] - t.known_letters[7] - t.known_letters[4],
+            t.unknown_letters["0,6,9"],
+        )
+
+        t.is_definitely(
+            "left_lower",
+            t.known_letters[8]
+            - t.known_letters[7]
+            - t.known_letters[4]
+            - {t.at["bottom"]},
+        )
+
+        # figure out which is a 0, 6 or 9
+        t.known_letters[0] = next(
+            filter(lambda x: t.at["mid"] not in x, t.unknown_letters["0,6,9"])
+        )
+        t.known_letters[6] = next(
+            filter(lambda x: t.at["right_upper"] not in x, t.unknown_letters["0,6,9"])
+        )
+        t.known_letters[9] = next(
+            filter(lambda x: t.at["left_lower"] not in x, t.unknown_letters["0,6,9"])
+        )
+
+        # figure out which is a 2,3,5 - they all have top,mid.bottom
+        t.known_letters[2] = next(
+            filter(
+                lambda x: t.at["right_upper"] in x and t.at["left_lower"] in x,
+                t.unknown_letters["2,3,5"],
+            )
+        )
+        t.known_letters[3] = next(
+            filter(
+                lambda x: t.at["right_upper"] in x and t.at["right_lower"] in x,
+                t.unknown_letters["2,3,5"],
+            )
+        )
+        t.known_letters[5] = next(
+            filter(
+                lambda x: t.at["left_upper"] in x and t.at["right_lower"] in x,
+                t.unknown_letters["2,3,5"],
+            )
+        )
+
+        digits = ""
         for value in output_values:
-            if set(value) == bits_for_0:
-                number += "0"
-            if set(value) == bits_for_1:
-                number += "1"
-            if set(value) == bits_for_2:
-                number += "2"
-            if set(value) == bits_for_3:
-                number += "3"
-            if set(value) == bits_for_4:
-                number += "4"
-            if set(value) == bits_for_5:
-                number += "5"
-            if set(value) == bits_for_6:
-                number += "6"
-            if set(value) == bits_for_7:
-                number += "7"
-            if set(value) == bits_for_8:
-                number += "8"
-            if set(value) == bits_for_9:
-                number += "9"
+            digits += t.output_to_digit(value)
 
-        count += int(number)
+        count += int(digits)
 
     return count
+
+
+class LettersAndSymbols:
+    def __init__(self, symbols):
+        self.known_letters = {
+            1: symbols[2][0],
+            4: symbols[4][0],
+            7: symbols[3][0],
+            8: symbols[7][0],
+        }
+        self.unknown_letters = {"0,6,9": symbols[6], "2,3,5": symbols[5]}
+
+        self.at = {}
+
+    def is_definitely(self, position, letter):
+        self.at[position] = list(letter)[0]
+
+    def is_the_most_common_within(self, position, possible, letters):
+        always_present = Counter(
+            filter(lambda x: x in possible, flatten(letters))
+        ).most_common(1)
+
+        self.is_definitely(position, always_present[0])
+
+    def output_to_digit(self, value):
+        for number, letters in self.known_letters.items():
+            if set(value) == letters:
+                return f"{number}"
+
+        return ""
 
 
 advent_of_code(
