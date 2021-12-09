@@ -24,37 +24,31 @@ def part_two(input):
         symbols = defaultdict(list)
         for pattern in signal_patterns:
             symbols[len(pattern)].append(set(pattern))
-
         t = LettersAndSymbols(symbols)
 
+        # Perform sodoku given what we know
         t.is_definitely("top", t.known_letters[7] - t.known_letters[1])
-
         t.is_the_most_common_within(
             "left_upper",
             t.known_letters[4] - t.known_letters[1],
             t.unknown_letters["0,6,9"],
         )
-
         t.is_definitely(
             "mid",
             t.known_letters[4] - t.known_letters[1] - set(t.at["left_upper"]),
         )
-
         t.is_the_most_common_within(
             "right_lower", t.known_letters[1], t.unknown_letters["0,6,9"]
         )
-
         t.is_definitely(
             "right_upper",
             t.known_letters[1] - set(t.at["right_lower"]),
         )
-
         t.is_the_most_common_within(
             "bottom",
             t.known_letters[8] - t.known_letters[7] - t.known_letters[4],
             t.unknown_letters["0,6,9"],
         )
-
         t.is_definitely(
             "left_lower",
             t.known_letters[8]
@@ -63,7 +57,7 @@ def part_two(input):
             - {t.at["bottom"]},
         )
 
-        # figure out which is a 0, 6 or 9
+        # Figure out the six unknown numbers now we have the pattern
         t.known_letters[0] = next(
             filter(lambda x: t.at["mid"] not in x, t.unknown_letters["0,6,9"])
         )
@@ -73,8 +67,6 @@ def part_two(input):
         t.known_letters[9] = next(
             filter(lambda x: t.at["left_lower"] not in x, t.unknown_letters["0,6,9"])
         )
-
-        # figure out which is a 2,3,5 - they all have top,mid.bottom
         t.known_letters[2] = next(
             filter(
                 lambda x: t.at["right_upper"] in x and t.at["left_lower"] in x,
