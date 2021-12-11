@@ -19,7 +19,7 @@ def neighbouring_cells(x, y, x_height, y_height):
         x, y = cord
         return y >= 0 and x >= 0 and y < y_height and x < x_height
 
-    return list(filter(in_bounds, neighbours))
+    return filter(in_bounds, neighbours)
 
 
 def increment(x, y, input, flashed_this_round):
@@ -58,7 +58,7 @@ def part_two(input):
         for x, y in flashed_this_round:
             input[y][x] = 0
 
-        if all(all(cell == 0 for cell in line) == True for line in input):
+        if all(all(cell == 0 for cell in line) for line in input):
             return step
 
     return 0
