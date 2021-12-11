@@ -51,7 +51,7 @@ def part_one(input):
 def part_two(input):
     for step in range(1, 400):
         increment_grid(input)
-        if all(all(cell == 0 for cell in line) for line in input):
+        if all(all(energy == 0 for energy in line) for line in input):
             return step
 
     return 0
