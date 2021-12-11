@@ -4,17 +4,18 @@ import math
 
 
 def neighbouring_cells(x, y, x_height, y_height):
-    neighbours = []
-    if y > 0 and y < y_height:
-        neighbours.append([x, y - 1])
-    if y < (y_height - 1):
-        neighbours.append([x, y + 1])
-    if x > 0 and x < x_height:
-        neighbours.append([x - 1, y])
-    if x < (x_height - 1):
-        neighbours.append([x + 1, y])
+    neighbours = [
+        [x, y + 1],
+        [x, y - 1],
+        [x - 1, y],
+        [x + 1, y],
+    ]
 
-    return neighbours
+    def in_bounds(cord):
+        x, y = cord
+        return y >= 0 and x >= 0 and y < y_height and x < x_height
+
+    return list(filter(in_bounds, neighbours))
 
 
 def find_lowest_points(input):
