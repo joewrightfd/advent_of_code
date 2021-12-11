@@ -1,6 +1,7 @@
 import input_11
 from aoc import advent_of_code
-from pprint import pprint
+
+FLASH_ENERGY_LEVEL = 9
 
 
 def neighbouring_cells(x, y, x_height, y_height):
@@ -24,40 +25,32 @@ def neighbouring_cells(x, y, x_height, y_height):
 
 def increment(x, y, input, flashed_this_round):
     input[y][x] += 1
-    if input[y][x] > 9 and [x, y] not in flashed_this_round:
+    if input[y][x] > FLASH_ENERGY_LEVEL and [x, y] not in flashed_this_round:
         flashed_this_round.append([x, y])
         for x, y in neighbouring_cells(x, y, len(input[y]), len(input)):
             increment(x, y, input, flashed_this_round)
 
 
+def increment_grid(input):
+    flashed_this_round = []
+
+    for y in range(len(input)):
+        for x in range(len(input[y])):
+            increment(x, y, input, flashed_this_round)
+
+    for x, y in flashed_this_round:
+        input[y][x] = 0
+
+    return len(flashed_this_round)
+
+
 def part_one(input):
-    flashes = 0
-    for _ in range(1, 101):
-        flashed_this_round = []
-
-        for y in range(len(input)):
-            for x in range(len(input[y])):
-                increment(x, y, input, flashed_this_round)
-
-        for x, y in flashed_this_round:
-            input[y][x] = 0
-
-        flashes += len(flashed_this_round)
-
-    return flashes
+    return sum([increment_grid(input) for _ in range(1, 101)])
 
 
 def part_two(input):
     for step in range(1, 400):
-        flashed_this_round = []
-
-        for y in range(len(input)):
-            for x in range(len(input[y])):
-                increment(x, y, input, flashed_this_round)
-
-        for x, y in flashed_this_round:
-            input[y][x] = 0
-
+        increment_grid(input)
         if all(all(cell == 0 for cell in line) for line in input):
             return step
 
