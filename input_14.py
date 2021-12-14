@@ -24,28 +24,7 @@ def sample():
 
 def real():
     return (
-        [
-            "K",
-            "B",
-            "K",
-            "P",
-            "H",
-            "K",
-            "H",
-            "H",
-            "N",
-            "B",
-            "C",
-            "V",
-            "C",
-            "H",
-            "P",
-            "S",
-            "P",
-            "N",
-            "H",
-            "F",
-        ],
+        "KBKPHKHHNBCVCHPSPNHF",
         {
             "OP": "H",
             "CF": "C",
