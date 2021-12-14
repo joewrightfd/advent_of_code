@@ -3,33 +3,33 @@ from aoc import advent_of_code
 from collections import Counter
 
 
-def expand_polymer(template, insertion_rules):
-    new_version = []
+def apply_rules(input, times):
+    template, insertion_rules = input
+
+    pairs = Counter()
+    letters = Counter()
     for a, b in zip(template, template[1:]):
-        code = a + b
-        new_letter = insertion_rules[code]
-        new_version.append(new_letter)
+        pairs[a + b] += 1
+    for a in template:
+        letters[a] += 1
 
-    merged = []
-    for i in range(len(template) + len(new_version)):
-        relative_index = int(i / 2)
-        if i % 2 == 1:
-            merged.append(new_version[relative_index])
-        else:
-            merged.append(template[relative_index])
+    for _ in range(times):
+        for (first_letter, last_letter), count in pairs.copy().items():
+            new_letter = insertion_rules[first_letter + last_letter]
+            pairs[first_letter + last_letter] -= count
+            pairs[first_letter + new_letter] += count
+            pairs[new_letter + last_letter] += count
+            letters[new_letter] += count
 
-    return merged
+    return letters.most_common()[0][1] - letters.most_common()[-1][1]
 
 
 def part_one(input):
-    template, insertion_rules = input
+    return apply_rules(input, 10)
 
-    for _ in range(10):
-        template = expand_polymer(template, insertion_rules)
 
-    stuff = Counter(template).most_common()
-
-    return stuff[0][1] - stuff[-1][1]
+def part_two(input):
+    return apply_rules(input, 40)
 
 
 advent_of_code(
@@ -39,6 +39,18 @@ advent_of_code(
         "fn": part_one,
         "sample": input_14.sample(),
         "expected": 1588,
+        "real": input_14.real(),
+    }
+)
+
+
+advent_of_code(
+    {
+        "day": 14,
+        "part": 2,
+        "fn": part_two,
+        "sample": input_14.sample(),
+        "expected": 2188189693529,
         "real": input_14.real(),
     }
 )

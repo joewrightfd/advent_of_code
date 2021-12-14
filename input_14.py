@@ -1,6 +1,6 @@
 def sample():
     return (
-        ["N", "N", "C", "B"],
+        "NNCB",
         {
             "CH": "B",
             "HH": "N",
