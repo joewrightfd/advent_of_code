@@ -27,16 +27,17 @@ class Solver:
 
         return filter(in_bounds, neighbours)
 
-    def scaled_cost(self, x, y, scale):
-        if scale == 1:
-            return self.grid[y][x]
+    def scaled_cost(self, x, y):
+        sx = x % self.width
+        sy = y % self.height
+        base_cost = self.grid[sy][sx]
 
-        base_cost = self.grid[y % self.height][x % self.width]
-        scale_cost = int(x / self.width) + int(y / self.height) - 1
-        return (base_cost + scale_cost) % 9 + 1
+        scale_cost = int(x / self.width) + int(y / self.height)
+        wrapped_cost = (base_cost + scale_cost) % 9
+        return wrapped_cost if wrapped_cost != 0 else 9
 
     def dijkstra(self, start, scale):
-        # https://bradfieldcs.com/algos/graphs/dijkstras-algorithm/
+        # Largely stolen from: https://bradfieldcs.com/algos/graphs/dijkstras-algorithm/
         distances = {start: 0}
 
         pqueue = [(start, 0)]
@@ -45,7 +46,7 @@ class Solver:
 
             if total <= distances[(x, y)]:
                 for (nx, ny) in self.neighbouring_cells(x, y, scale):
-                    distance = total + self.scaled_cost(nx, ny, scale)
+                    distance = total + self.scaled_cost(nx, ny)
                     if distance < distances.get((nx, ny), sys.maxsize):
                         distances[(nx, ny)] = distance
                         heapq.heappush(pqueue, ((nx, ny), distance))
