@@ -3,6 +3,7 @@ from aoc import advent_of_code
 
 import sys
 import heapq
+from collections import defaultdict
 
 
 class Solver:
@@ -36,20 +37,30 @@ class Solver:
         wrapped_cost = (base_cost + scale_cost) % 9
         return wrapped_cost if wrapped_cost != 0 else 9
 
+    # Largely stolen from: https://bradfieldcs.com/algos/graphs/dijkstras-algorithm/
     def dijkstra(self, start, scale):
-        # Largely stolen from: https://bradfieldcs.com/algos/graphs/dijkstras-algorithm/
-        distances = {start: 0}
+        # keep track of the total cost from the start node to each destination, default to max int
+        distances = defaultdict(lambda: sys.maxsize)
+        distances[start] = 0
 
+        # queue of vertices sorted by distance
         pqueue = [(start, 0)]
         while pqueue:
             (x, y), total = heapq.heappop(pqueue)
 
-            if total <= distances[(x, y)]:
-                for (nx, ny) in self.neighbouring_cells(x, y, scale):
-                    distance = total + self.scaled_cost(nx, ny)
-                    if distance < distances.get((nx, ny), sys.maxsize):
-                        distances[(nx, ny)] = distance
-                        heapq.heappush(pqueue, ((nx, ny), distance))
+            # Nodes can get added to the priority queue multiple times. We only
+            # process a vertex the first time we remove it from the priority queue.
+            if total > distances[(x, y)]:
+                continue
+
+            for (nx, ny) in self.neighbouring_cells(x, y, scale):
+                distance = total + self.scaled_cost(nx, ny)
+
+                # Only consider this new path if it's better than any path we've
+                # already found.
+                if distance < distances[(nx, ny)]:
+                    distances[(nx, ny)] = distance
+                    heapq.heappush(pqueue, ((nx, ny), distance))
 
         end = ((self.width * scale) - 1, (self.height * scale) - 1)
         return distances[end]
