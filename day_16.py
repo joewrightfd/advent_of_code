@@ -25,8 +25,10 @@ def unhexify(s):
     return "".join(f"{int(x, 16):04b}" for x in s)
 
 
-def parse_literal_value(packet):
-    groups_of_five_bits = [packet[i : i + 5] for i in range(0, len(packet), 5)]
+def parse_literal_value(packet, packet_string):
+    groups_of_five_bits = [
+        packet_string[i : i + 5] for i in range(0, len(packet_string), 5)
+    ]
 
     number_being_built = ""
     remains = ""
@@ -40,46 +42,50 @@ def parse_literal_value(packet):
             if bitgroup[0] == "0":
                 mode = "REMAINS"
 
-    literal = int(number_being_built, 2)
-    return literal, remains
+    packet.value = int(number_being_built, 2)
+
+    return packet, remains
 
 
-def parse_operator_value(packet, identifier, packet_string):
-    if identifier == "0":
-        len_of_whole_packet = int(packet_string[:15], 2)
-        to_check = packet_string[15 : 15 + len_of_whole_packet]
-        remains = packet_string[15 + len_of_whole_packet :]
-        while to_check:
-            sub_packet, to_check = parse(to_check)
-            packet.children.append(sub_packet)
-    else:
-        total_sub_packets = int(packet_string[:11], 2)
-        remains = packet_string[11:]
-        for _ in range(total_sub_packets):
-            sub_packet, remains = parse(remains)
-            packet.children.append(sub_packet)
+def parse_operator_by_length(packet, packet_string):
+    len_of_whole_packet = int(packet_string[:15], 2)
+    to_check = packet_string[15 : 15 + len_of_whole_packet]
+    remains = packet_string[15 + len_of_whole_packet :]
+    while to_check:
+        sub_packet, to_check = parse(to_check)
+        packet.children.append(sub_packet)
+
+    return packet, remains
+
+
+def parse_operator_by_packets(packet, packet_string):
+    total_sub_packets = int(packet_string[:11], 2)
+    remains = packet_string[11:]
+    for _ in range(total_sub_packets):
+        sub_packet, remains = parse(remains)
+        packet.children.append(sub_packet)
 
     return packet, remains
 
 
 def parse(packet_string):
-    packet_version = int(packet_string[0:3], 2)
-    packet_type_id = int(packet_string[3:6], 2)
-    p = Packet(packet_version, packet_type_id)
+    version = int(packet_string[0:3], 2)
+    type_id = int(packet_string[3:6], 2)
+    packet = Packet(version, type_id)
 
-    if packet_type_id == 4:
-        value, remains = parse_literal_value(packet_string[6:])
-        p.value = value
-        return p, remains
+    if type_id == 4:
+        return parse_literal_value(packet, packet_string[6:])
+    if packet_string[6] == "0":
+        return parse_operator_by_length(packet, packet_string[7:])
+    if packet_string[6] == "1":
+        return parse_operator_by_packets(packet, packet_string[7:])
 
-    return parse_operator_value(p, packet_string[6], packet_string[7:])
 
-
-def count_versions(t):
+def count_versions(packet):
     children_versions = 0
-    for child in t.children:
+    for child in packet.children:
         children_versions += count_versions(child)
-    return t.version + children_versions
+    return packet.version + children_versions
 
 
 def part_one(x):
