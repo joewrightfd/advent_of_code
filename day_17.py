@@ -8,7 +8,7 @@ def triangular_number(n):
 def passes_through_target(trajectory, target):
     current_pos = (0, 0)
     current_trajectory = trajectory
-    for step in range(1000):
+    for _ in range(1000):
         new_x = current_pos[0] + current_trajectory[0]
         new_y = current_pos[1] + current_trajectory[1]
         current_pos = (new_x, new_y)
@@ -22,39 +22,39 @@ def passes_through_target(trajectory, target):
         current_trajectory = (new_t_x, new_t_y)
 
         if new_x in target[0] and new_y in target[1]:
-            # print(trajectory, "inside at", current_pos, "after", step)
+            # inside
             return True
 
         if new_y < target[1][0]:
-            # print(
-            #     trajectory, "overshot at", current_pos, "which is outwith", target[1][0]
-            # )
+            # outwith bounds
             return False
 
-    # print("given up at", current_pos, "after 100 rounds")
+    # give up
     return False
 
 
-def part_one(target):
-    print("=" * 80)
-
-    possbile_x = []
-    for n in range(1000):
-        if triangular_number(n) in target[0]:
-            possbile_x.append(n)
-
-    print("pos x", possbile_x)
+def find_possible_trajectories(target):
+    highest_possible_x = range(target[0][-1] + 1)
+    lowest_possible_y = target[1][0]
+    highest_possible_y = 150  # guess, could be clever with x, but cpu can handle it!
 
     possible = []
-    for px in possbile_x:
-        for py in range(1000):
+    for px in highest_possible_x:
+        for py in range(lowest_possible_y, highest_possible_y):
             if passes_through_target((px, py), target):
                 possible.append((px, py))
+    return possible
 
+
+def part_one(target):
+    possible = find_possible_trajectories(target)
     highest_y = sorted(possible, key=lambda x: x[1], reverse=True)
-    print("pos y", possible)
-
     return triangular_number(highest_y[0][1])
+
+
+def part_two(target):
+    possible = find_possible_trajectories(target)
+    return len(possible)
 
 
 advent_of_code(
@@ -62,8 +62,21 @@ advent_of_code(
         "day": 17,
         "part": 1,
         "fn": part_one,
-        "sample": (range(20, 30), range(-10, -5)),
+        "sample": (range(20, 30), range(-10, -5 + 1)),
         "expected": 45,
-        "real": (range(211, 232), range(-124, -69)),
+        "real": (range(211, 232), range(-124, -69 + 1)),
+        # 7626
+    }
+)
+
+advent_of_code(
+    {
+        "day": 17,
+        "part": 2,
+        "fn": part_two,
+        "sample": (range(20, 30 + 1), range(-10, -5 + 1)),
+        "expected": 112,
+        "real": (range(211, 232 + 1), range(-124, -69 + 1)),
+        # 2032
     }
 )
