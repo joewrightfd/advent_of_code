@@ -1,6 +1,5 @@
 import input_18
 import unittest
-import uuid
 import math
 from aoc import advent_of_code
 
@@ -11,7 +10,6 @@ class Node:
         self.right = None
         self.value = value
         self.parent = parent
-        self.unique = str(uuid.uuid4())
 
     def add(self, child):
         if self.left == None:
@@ -28,15 +26,13 @@ class Node:
     def to_the_right(self, child):
         res = []
         self.to_siblings(res)
-        uniques = list(map(lambda x: x.unique, res))
-        index = uniques.index(child.unique) + 1
+        index = res.index(child) + 1
         return res[index] if len(res) > index else None
 
     def to_the_left(self, child):
         res = []
         self.to_siblings(res)
-        uniques = list(map(lambda x: x.unique, res))
-        index = uniques.index(child.unique) - 1
+        index = res.index(child) - 1
         return res[index] if index >= 0 else None
 
     def to_siblings(self, res):
@@ -70,24 +66,24 @@ class Node:
 
         return root
 
-
-def add(l, r):
-    root = Node()
-    root.left = l
-    root.right = r
-    l.parent = root
-    r.parent = root
-    return root
+    @staticmethod
+    def combine(l, r):
+        root = Node()
+        root.left = l
+        root.right = r
+        l.parent = root
+        r.parent = root
+        return root
 
 
 def find_action(tree):
     explode = []
     split = []
-    visit(tree, 0, explode, split)
+    find_explode_or_split(tree, 0, explode, split)
     return {"explode": explode, "split": split}
 
 
-def visit(tree, depth, explode, split):
+def find_explode_or_split(tree, depth, explode, split):
     if depth >= 4 and tree.value == None:
         explode.append(tree)
         return
@@ -97,8 +93,8 @@ def visit(tree, depth, explode, split):
             split.append(tree)
         return
 
-    visit(tree.left, depth + 1, explode, split)
-    visit(tree.right, depth + 1, explode, split)
+    find_explode_or_split(tree.left, depth + 1, explode, split)
+    find_explode_or_split(tree.right, depth + 1, explode, split)
 
 
 def explode(root, node):
@@ -137,26 +133,26 @@ def add_all(input):
     root = Node.from_snail_number(input[0], Node())
     for next_line in input[1:]:
         next_tree = Node.from_snail_number(next_line, Node())
-        root = add(root, next_tree)
+        root = Node.combine(root, next_tree)
         apply_reductions(root)
 
     return root.to_snail_number()
 
 
 def magnitude(snail_number):
-    lefty = snail_number[0]
-    if isinstance(snail_number[0], list):
-        lefty = magnitude(snail_number[0])
-    else:
-        lefty = snail_number[0]
+    lefty = (
+        magnitude(snail_number[0])
+        if isinstance(snail_number[0], list)
+        else snail_number[0]
+    )
 
-    right = snail_number[1]
-    if isinstance(snail_number[1], list):
-        right = magnitude(snail_number[1])
-    else:
-        right = snail_number[1]
+    righty = (
+        magnitude(snail_number[1])
+        if isinstance(snail_number[1], list)
+        else snail_number[1]
+    )
 
-    return lefty * 3 + right * 2
+    return lefty * 3 + righty * 2
 
 
 def part_one(input):
@@ -166,22 +162,19 @@ def part_one(input):
 
 def part_two(input):
     max_so_far = 0
+    processed = set()
 
-    for idx_a, elem in enumerate(input):
-        for idx_b, elem in enumerate(input):
-            a = input[idx_a]
-            b = input[idx_b]
-
-            if idx_a == idx_b:
+    for idx_a, elem_a in enumerate(input):
+        for idx_b, elem_b in enumerate(input):
+            if idx_a == idx_b or f"{idx_a},{idx_b}" in processed:
                 continue
 
-            mag = part_one([a, b])
-            if mag > max_so_far:
-                max_so_far = mag
+            processed.add(f"{idx_a},{idx_b}")
+            processed.add(f"{idx_b},{idx_a}")
 
-            mag = part_one([b, a])
-            if mag > max_so_far:
-                max_so_far = mag
+            max_so_far = max(
+                max_so_far, part_one([elem_a, elem_b]), part_one([elem_b, elem_a])
+            )
 
     return max_so_far
 
@@ -245,7 +238,7 @@ class TestProblem(unittest.TestCase):
         left = Node.from_snail_number([1, 2], Node())
         right = Node.from_snail_number([[3, 4], 5], Node())
         expected = [[1, 2], [[3, 4], 5]]
-        self.assertEqual(add(left, right).to_snail_number(), expected)
+        self.assertEqual(Node.combine(left, right).to_snail_number(), expected)
 
     def test_check_for_explode(self):
         root = Node.from_snail_number([[[[[9, 8], 1], 2], 3], 4], Node())
