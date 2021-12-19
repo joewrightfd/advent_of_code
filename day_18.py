@@ -134,7 +134,6 @@ def apply_reductions(tree):
 
 
 def add_all(input):
-    print("_" * 80)
     root = Node.from_snail_number(input[0], Node())
     for next_line in input[1:]:
         next_tree = Node.from_snail_number(next_line, Node())
@@ -165,6 +164,28 @@ def part_one(input):
     return magnitude(root)
 
 
+def part_two(input):
+    max_so_far = 0
+
+    for idx_a, elem in enumerate(input):
+        for idx_b, elem in enumerate(input):
+            a = input[idx_a]
+            b = input[idx_b]
+
+            if idx_a == idx_b:
+                continue
+
+            mag = part_one([a, b])
+            if mag > max_so_far:
+                max_so_far = mag
+
+            mag = part_one([b, a])
+            if mag > max_so_far:
+                max_so_far = mag
+
+    return max_so_far
+
+
 advent_of_code(
     {
         "day": 18,
@@ -172,6 +193,17 @@ advent_of_code(
         "fn": part_one,
         "sample": input_18.sample(),
         "expected": 4140,
+        "real": input_18.real(),
+    }
+)
+
+advent_of_code(
+    {
+        "day": 18,
+        "part": 2,
+        "fn": part_two,
+        "sample": input_18.sample(),
+        "expected": 3993,
         "real": input_18.real(),
     }
 )
